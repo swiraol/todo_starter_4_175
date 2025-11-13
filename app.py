@@ -1,11 +1,13 @@
 from uuid import uuid4
 
-from flask import (Flask, 
-                   render_template, 
-                   redirect,  
-                   request, 
-                   session,
-                   url_for,
+from flask import (
+    flash,
+    Flask, 
+    render_template, 
+    redirect,  
+    request, 
+    session,
+    url_for,
 )
 
 app = Flask(__name__)
@@ -31,6 +33,7 @@ def create_list():
     title = request.form['list_title'].strip()
     session['lists'].append({"id": str(uuid4()), "title": title, "todos": [],})
     session.modified = True
+    flash("The list has been added", "success")
     return redirect(url_for('get_lists'))
 
 @app.route('/lists/new')
