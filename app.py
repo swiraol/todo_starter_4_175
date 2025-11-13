@@ -1,5 +1,7 @@
 from uuid import uuid4
 
+from todos.utils import error_for_list_title
+
 from flask import (
     flash,
     Flask, 
@@ -31,6 +33,10 @@ def get_lists():
 @app.route("/lists", methods=["POST"])
 def create_list():
     title = request.form['list_title'].strip()
+    error = error_for_list_title(title, session['lists'])
+    if error: 
+        flash(error, 'error')
+        return render_template('new_list.html', title=title)
     session['lists'].append({"id": str(uuid4()), "title": title, "todos": [],})
     session.modified = True
     flash("The list has been added", "success")
