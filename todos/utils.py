@@ -7,3 +7,10 @@ def error_for_list_title(title, all_lists):
         return "The title must be between 1 and 100 characters"
     
     return None
+
+def find_list_by_id(list_id, all_lists):
+    for lst in all_lists:
+        if lst['id'] == list_id:
+            return lst 
+    
+    return None

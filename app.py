@@ -1,6 +1,8 @@
 from uuid import uuid4
 
-from todos.utils import error_for_list_title
+from todos.utils import error_for_list_title, find_list_by_id
+
+from werkzeug.exceptions import NotFound
 
 from flask import (
     flash,
@@ -45,6 +47,14 @@ def create_list():
 @app.route('/lists/new')
 def add_todo_list():
     return render_template('new_list.html')
+
+@app.route('/lists/<list_id>')
+def show_list(list_id):
+    lst = find_list_by_id(list_id, session['lists'])
+    if lst: 
+        return render_template('list.html', lst=lst)
+    else:
+        raise NotFound(description="List not found")
 
 if __name__ == "__main__":
     app.run(debug=True, port=5003)
