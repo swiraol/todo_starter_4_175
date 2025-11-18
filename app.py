@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from todos.utils import error_for_list_title, find_list_by_id
+from todos.utils import error_for_list_title, error_for_todo, find_list_by_id
 
 from werkzeug.exceptions import NotFound
 
@@ -55,6 +55,33 @@ def show_list(list_id):
         return render_template('list.html', lst=lst)
     else:
         raise NotFound(description="List not found")
+
+@app.route('/lists/<list_id>/todos', methods=['GET', 'POST'])
+def create_new_todo(list_id):
+    if request.method == 'POST':
+        title = request.form['todo'].strip()
+        lst = find_list_by_id(list_id, session['lists'])
+        if not lst: 
+            raise NotFound(description="List not found")
+        
+        error = error_for_todo(title)
+        if error:
+            flash(error, 'error')
+            return render_template('list.html', lst=lst)
+        
+        lst['todos'].append({
+            'id': str(uuid4()),
+            'title': title,
+            'completed': False,
+        })
+        session.modified = True
+        flash("Your todo has been created", "success")
+        return redirect(url_for('show_list', list_id=list_id))
+    
+    lst = find_list_by_id(list_id, session['lists'])
+    if not lst: 
+        raise NotFound(description="List not found")
+    return redirect(url_for('show_list', list_id=list_id))
 
 if __name__ == "__main__":
     app.run(debug=True, port=5003)

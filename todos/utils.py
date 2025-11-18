@@ -14,3 +14,9 @@ def find_list_by_id(list_id, all_lists):
             return lst 
     
     return None
+
+def error_for_todo(title):
+    if 1 <= len(title) <= 100:
+        return None
+    else:
+        return "Your title must be between 1 and 100 characters long"
