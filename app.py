@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from todos.utils import error_for_list_title, error_for_todo, find_list_by_id
+from todos.utils import error_for_list_title, error_for_todo, find_list_by_id, find_todo_by_id
 
 from werkzeug.exceptions import NotFound
 
@@ -83,5 +83,23 @@ def create_new_todo(list_id):
         raise NotFound(description="List not found")
     return redirect(url_for('show_list', list_id=list_id))
 
+@app.route('/lists/<list_id>/todos/<todo_id>/toggle', methods=["POST"])
+def update_todo_status(list_id, todo_id):
+    lst = find_list_by_id(list_id, session['lists'])
+    if not lst:
+        raise NotFound(description="List not found")
+    
+    todo = find_todo_by_id(todo_id, lst['todos'])
+    if not todo:
+        raise NotFound(description="Todo not found")
+    completed = (request.form['completed'] == 'True')
+    todo['completed'] = completed
+    session.modified = True 
+    if completed:
+        flash('The todo has been completed', 'success')    
+    else:
+        flash('The todo is now incomplete', 'success')
+    return redirect(url_for('show_list', list_id=list_id))
+    
 if __name__ == "__main__":
     app.run(debug=True, port=5003)
