@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from todos.utils import error_for_list_title, delete_todo_by_id, error_for_todo, find_list_by_id, find_todo_by_id
+from todos.utils import error_for_list_title, delete_todo_by_id, error_for_todo, find_list_by_id, find_todo_by_id, mark_all_completed
 
 from werkzeug.exceptions import NotFound
 
@@ -55,6 +55,16 @@ def show_list(list_id):
         return render_template('list.html', lst=lst)
     else:
         raise NotFound(description="List not found")
+    
+@app.route('/lists/<list_id>/complete_all', methods=['POST'])
+def mark_all_todos_completed(list_id):
+    lst = find_list_by_id(list_id, session['lists'])
+    if not lst:
+        raise NotFound(description="List not found")
+    mark_all_completed(lst['todos'])
+    session.modified = True 
+    flash('All todos have been completed', 'success')
+    return redirect(url_for('show_list', list_id=list_id))
 
 @app.route('/lists/<list_id>/todos', methods=['GET', 'POST'])
 def create_new_todo(list_id):
