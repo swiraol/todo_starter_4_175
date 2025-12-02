@@ -21,6 +21,9 @@ def find_todo_by_id(todo_id, todos):
             return todo
     return None
 
+def delete_todo_by_id(todo_id, todos):
+    return [todo for todo in todos if not todo_id == todo['id']]
+            
 def error_for_todo(title):
     if 1 <= len(title) <= 100:
         return None
