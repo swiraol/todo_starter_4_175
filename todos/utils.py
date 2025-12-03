@@ -15,6 +15,10 @@ def find_list_by_id(list_id, all_lists):
     
     return None
 
+def delete_list_by_id(list_id, all_lists):
+    all_lists[:] = [lst for lst in all_lists if not lst['id'] == list_id]
+    return None
+
 def find_todo_by_id(todo_id, todos):
     for todo in todos:
         if todo_id == todo['id']:
