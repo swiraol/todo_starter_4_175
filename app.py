@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from todos.utils import error_for_list_title, delete_list_by_id, delete_todo_by_id, error_for_todo, find_list_by_id, find_todo_by_id, mark_all_completed
+from todos.utils import error_for_list_title, delete_list_by_id, delete_todo_by_id, error_for_todo, find_list_by_id, find_todo_by_id, mark_all_completed, todos_remaining
 
 from werkzeug.exceptions import NotFound
 
@@ -23,14 +23,13 @@ def initialize_session():
     if 'lists' not in session:
         session['lists'] = []
 
-
 @app.route("/")
 def index():
     return redirect(url_for('get_lists'))
 
 @app.route("/lists")
 def get_lists():
-    return render_template('lists.html', lists=session['lists'])
+    return render_template('lists.html', lists=session['lists'], todos_remaining=todos_remaining)
 
 @app.route("/lists", methods=["POST"])
 def create_list():

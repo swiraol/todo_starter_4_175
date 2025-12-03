@@ -38,3 +38,6 @@ def error_for_todo(title):
         return None
     else:
         return "Your title must be between 1 and 100 characters long"
+
+def todos_remaining(lst):
+    return sum(1 for todo in lst['todos'] if not todo['completed'])  
