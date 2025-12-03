@@ -88,6 +88,7 @@ def delete_list(list_id):
     
     delete_list_by_id(list_id, session['lists'])
     session.modified = True 
+    flash("The list has been deleted", "success")
 
     return redirect(url_for('get_lists'))
     
