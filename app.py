@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from todos.utils import error_for_list_title, delete_list_by_id, delete_todo_by_id, error_for_todo, find_list_by_id, find_todo_by_id, mark_all_completed, todos_remaining
+from todos.utils import error_for_list_title, delete_list_by_id, delete_todo_by_id, error_for_todo, find_list_by_id, find_todo_by_id, is_list_completed, mark_all_completed, todos_remaining
 
 from werkzeug.exceptions import NotFound
 
@@ -22,6 +22,12 @@ app.secret_key = 'secret1'
 def initialize_session():
     if 'lists' not in session:
         session['lists'] = []
+
+@app.context_processor
+def list_utilities_processor():
+    return dict(
+        is_list_completed=is_list_completed,
+    )
 
 @app.route("/")
 def index():

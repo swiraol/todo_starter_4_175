@@ -41,3 +41,6 @@ def error_for_todo(title):
 
 def todos_remaining(lst):
     return sum(1 for todo in lst['todos'] if not todo['completed'])  
+
+def is_list_completed(lst):
+    return todos_remaining(lst) == 0 and len(lst['todos']) > 0
