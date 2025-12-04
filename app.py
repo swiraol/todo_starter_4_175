@@ -1,6 +1,18 @@
 from uuid import uuid4
 
-from todos.utils import error_for_list_title, delete_list_by_id, delete_todo_by_id, error_for_todo, find_list_by_id, find_todo_by_id, is_list_completed, mark_all_completed, todos_remaining
+from todos.utils import (
+    delete_list_by_id, 
+    error_for_list_title, 
+    delete_todo_by_id, 
+    error_for_todo, 
+    find_list_by_id, 
+    find_todo_by_id, 
+    is_list_completed, 
+    is_todo_completed,
+    mark_all_completed, 
+    sort_items,
+    todos_remaining,
+)
 
 from werkzeug.exceptions import NotFound
 
@@ -35,7 +47,8 @@ def index():
 
 @app.route("/lists")
 def get_lists():
-    return render_template('lists.html', lists=session['lists'], todos_remaining=todos_remaining)
+    lists = sort_items(session['lists'], is_list_completed)
+    return render_template('lists.html', lists=lists, todos_remaining=todos_remaining)
 
 @app.route("/lists", methods=["POST"])
 def create_list():
@@ -57,6 +70,7 @@ def add_todo_list():
 def show_list(list_id):
     lst = find_list_by_id(list_id, session['lists'])
     if lst: 
+        lst['todos'] = sort_items(lst['todos'], is_todo_completed)
         return render_template('list.html', lst=lst)
     else:
         raise NotFound(description="List not found")

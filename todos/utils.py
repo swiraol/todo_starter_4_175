@@ -42,5 +42,15 @@ def error_for_todo(title):
 def todos_remaining(lst):
     return sum(1 for todo in lst['todos'] if not todo['completed'])  
 
+def is_todo_completed(todo):
+    return todo['completed']
+
 def is_list_completed(lst):
     return todos_remaining(lst) == 0 and len(lst['todos']) > 0
+
+def sort_items(items, select_completed):
+    sorted_items = sorted(items, key=lambda item: item['title'].lower())
+    incomplete_items = [item for item in sorted_items if not select_completed(item)]
+    completed_items = [item for item in sorted_items if select_completed(item)]
+
+    return incomplete_items + completed_items 
