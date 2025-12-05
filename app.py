@@ -1,5 +1,7 @@
 from uuid import uuid4
 
+from functools import wraps 
+
 from todos.utils import (
     delete_list_by_id, 
     error_for_list_title, 
@@ -27,8 +29,29 @@ from flask import (
 )
 
 app = Flask(__name__)
-
 app.secret_key = 'secret1'
+
+def require_list(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        list_id = kwargs.get('list_id')
+        lst = find_list_by_id(list_id, session['lists'])
+        if not lst: 
+            raise NotFound(description="List not found")
+        return f(lst=lst, *args, **kwargs)
+    return decorated_function
+
+def require_todo(f):
+    @wraps(f)
+    @require_list
+    def decorated_function(lst, *args, **kwargs):
+        todo_id = kwargs.get('todo_id')
+        todo = find_todo_by_id(todo_id, lst['todos'])
+        if not todo:
+            raise NotFound(description="Todo not found")
+        return f(lst=lst, todo=todo, *args, **kwargs)
+    
+    return decorated_function
 
 @app.before_request
 def initialize_session():
@@ -67,19 +90,14 @@ def add_todo_list():
     return render_template('new_list.html')
 
 @app.route('/lists/<list_id>')
-def show_list(list_id):
-    lst = find_list_by_id(list_id, session['lists'])
-    if lst: 
-        lst['todos'] = sort_items(lst['todos'], is_todo_completed)
-        return render_template('list.html', lst=lst)
-    else:
-        raise NotFound(description="List not found")
+@require_list 
+def show_list(lst, list_id):
+    lst['todos'] = sort_items(lst['todos'], is_todo_completed)
+    return render_template('list.html', lst=lst)
 
 @app.route('/lists/<list_id>', methods=['POST'])
-def update_list(list_id):
-    lst = find_list_by_id(list_id, session['lists'])
-    if not lst:
-        raise NotFound(description="List not found")
+@require_list
+def update_list(lst, list_id):
     title = request.form['list_title'].strip()
     error = error_for_list_title(title, session['lists'])
     if error:
@@ -92,19 +110,13 @@ def update_list(list_id):
     return redirect(url_for('show_list', list_id=list_id))
 
 @app.route('/lists/<list_id>/edit')
-def edit_list(list_id):
-    lst = find_list_by_id(list_id, session['lists'])
-    if not lst:
-        raise NotFound(description="List not found")
-    
+@require_list
+def edit_list(lst, list_id):
     return render_template('edit_list.html', lst=lst)
 
 @app.route('/lists/<list_id>/delete')
-def delete_list(list_id):
-    lst = find_list_by_id(list_id, session['lists'])
-    if not lst:
-        raise NotFound(description="List not found")
-    
+@require_list
+def delete_list(lst, list_id):
     delete_list_by_id(list_id, session['lists'])
     session.modified = True 
     flash("The list has been deleted", "success")
@@ -112,10 +124,8 @@ def delete_list(list_id):
     return redirect(url_for('get_lists'))
     
 @app.route('/lists/<list_id>/complete_all', methods=['POST'])
-def mark_all_todos_completed(list_id):
-    lst = find_list_by_id(list_id, session['lists'])
-    if not lst:
-        raise NotFound(description="List not found")
+@require_list
+def mark_all_todos_completed(lst, list_id):
     mark_all_completed(lst['todos'])
     session.modified = True 
     flash('All todos have been completed', 'success')
@@ -149,14 +159,8 @@ def create_new_todo(list_id):
     return redirect(url_for('show_list', list_id=list_id))
 
 @app.route('/lists/<list_id>/todos/<todo_id>/toggle', methods=["POST"])
-def update_todo_status(list_id, todo_id):
-    lst = find_list_by_id(list_id, session['lists'])
-    if not lst:
-        raise NotFound(description="List not found")
-    
-    todo = find_todo_by_id(todo_id, lst['todos'])
-    if not todo:
-        raise NotFound(description="Todo not found")
+@require_todo
+def update_todo_status(lst, todo, list_id, todo_id):
     completed = (request.form['completed'] == 'True')
     todo['completed'] = completed
     session.modified = True 
@@ -167,14 +171,8 @@ def update_todo_status(list_id, todo_id):
     return redirect(url_for('show_list', list_id=list_id))
 
 @app.route('/lists/<list_id>/todos/<todo_id>/delete', methods=['POST'])
-def delete_todo(list_id, todo_id):
-    lst = find_list_by_id(list_id, session['lists'])
-    if not lst:
-        raise NotFound(description="List not found")
-    
-    todo = find_todo_by_id(todo_id, lst['todos'])
-    if not todo:
-        raise NotFound(description="Todo not found")
+@require_todo
+def delete_todo(lst, todo, list_id, todo_id):
     lst['todos'] = delete_todo_by_id(todo_id, lst['todos'])
     session.modified = True
     flash("Todo has been deleted", "success")
