@@ -114,7 +114,7 @@ def update_list(lst, list_id):
 def edit_list(lst, list_id):
     return render_template('edit_list.html', lst=lst)
 
-@app.route('/lists/<list_id>/delete')
+@app.route('/lists/<list_id>/delete', methods=['POST'])
 @require_list
 def delete_list(lst, list_id):
     delete_list_by_id(list_id, session['lists'])
@@ -132,12 +132,10 @@ def mark_all_todos_completed(lst, list_id):
     return redirect(url_for('show_list', list_id=list_id))
 
 @app.route('/lists/<list_id>/todos', methods=['GET', 'POST'])
-def create_new_todo(list_id):
+@require_list
+def create_new_todo(lst, list_id):
     if request.method == 'POST':
         title = request.form['todo'].strip()
-        lst = find_list_by_id(list_id, session['lists'])
-        if not lst: 
-            raise NotFound(description="List not found")
         
         error = error_for_todo(title)
         if error:
@@ -153,9 +151,6 @@ def create_new_todo(list_id):
         flash("Your todo has been created", "success")
         return redirect(url_for('show_list', list_id=list_id))
     
-    lst = find_list_by_id(list_id, session['lists'])
-    if not lst: 
-        raise NotFound(description="List not found")
     return redirect(url_for('show_list', list_id=list_id))
 
 @app.route('/lists/<list_id>/todos/<todo_id>/toggle', methods=["POST"])
